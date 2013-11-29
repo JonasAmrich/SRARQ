@@ -1,3 +1,13 @@
 
+#define MSG_LEN 255
+#define META_LEN 5
+
 #define BUFFER_SIZE 260
 #define QUEUE_SIZE 8
+
+#define ACK_TIMELIMIT_SEC 10
+#define ACK_TIMELIMIT_USEC 0
+
+#define MAX_CONNECTIONS 1
+
+#define STDIN 0
