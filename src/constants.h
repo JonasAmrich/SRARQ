@@ -11,3 +11,6 @@
 #define MAX_CONNECTIONS 1
 
 #define STDIN 0
+
+#define DEBUG 1
+#define DROP_PACKETS 1

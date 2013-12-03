@@ -81,8 +81,8 @@ int main(int argc, char *argv[]) {
                 if(queue_times[i] > 0 && queue_times[i] + ACK_TIMELIMIT <= current_time){
                     queue_times[i] = current_time;
                     decode_msg(queue[i], &len);
-                    send(socket_desc, queue[i], len, 0);
-                    fprintf(stderr, "Time limit expired. %d was sent again.\n", i);
+                    send_packet(socket_desc, queue[i], len+META_LEN, NULL, 0);
+                    fprintf(stderr, "Time limit expired. %%%d was sent again.\n", i);
                 }
             }
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
                         }
 
                         len = encode_msg(sequence_i, STDIN, queue[sequence_i % QUEUE_SIZE]);
-                        send(socket_desc, queue[sequence_i % QUEUE_SIZE], len, 0);
+                        send_packet(socket_desc, queue[sequence_i % QUEUE_SIZE], len, NULL, 0);
                         ack[sequence_i % QUEUE_SIZE] = 0;
                         queue_times[sequence_i % QUEUE_SIZE] = time(NULL);
                         sequence_i++;

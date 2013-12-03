@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include "constants.h"
 
-#define debug_hex(_s, _len, _c) int _i; fprintf(stderr, _c); for(_i = 0; _i < _len; _i++){fprintf(stderr, "%x|", _s[_i]);} fprintf(stderr, "\n");
+#define debug_hex(_s, _len, _c) {int _i; fprintf(stderr, _c); for(_i = 0; _i < _len; _i++){fprintf(stderr, "%x|", _s[_i]);} fprintf(stderr, "\n");}
 
 /* SRARQ functions */
 
@@ -15,6 +18,15 @@ int xor(char data[], int len){
         x ^= (int) data[i];
     }
     return x;
+}
+
+void send_packet(int socket_desc, char buf[], size_t len, const struct sockaddr *dest_addr, socklen_t addrlen){
+    if(DROP_PACKETS && !(rand() % 5)){ // drop 1/5 packets
+        if(DEBUG) fprintf(stderr, "> Dropped packet. I'm so sorry\n");
+        return;
+    }
+    if(DEBUG>1) debug_hex(buf, len, ">> ")
+    sendto(socket_desc, buf, len, 0, dest_addr, addrlen);
 }
 
 // Reads message from file descriptor and writes packet to destination
@@ -31,8 +43,7 @@ int encode_msg(int sequence, int fd, char dest[]){
     dest[len+3] = xor(&dest[3], len);
     dest[len+4] = 0;
 
-    debug_hex(dest, len+META_LEN, ">")
-    return len+5;
+    return len+META_LEN;
 }
 
 // Returns -1 for invalid or zero size packet, sequence number otherwise

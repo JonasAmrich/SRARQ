@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     socket_desc = socket(PF_INET, SOCK_DGRAM, 0);
 
     if(socket_desc < 0) {
-        fprintf(stderr, "Can not open socket. Terminating.\n");
+        perror("Can not open socket");
         return 1;
     }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     res = bind(socket_desc, (struct sockaddr *)&address, sizeof(address));
 
     if(res < 0){
-        fprintf(stderr, "Can not bind to port %d. Terminating.\n", server_port);
+        perror("Can not bind to port");
         return 1;
     }
 
@@ -60,10 +60,11 @@ int main(int argc, char *argv[]) {
         sequence = decode_msg(buf, &len);
 
         if(sequence >= 0){
+            // save message
             memcpy(queue[sequence % QUEUE_SIZE], buf, len+META_LEN);
 
             // send acknowledgement
-            sendto(socket_desc, buf, len+META_LEN, 0, (struct sockaddr *)&client_address, client_address_len);
+            send_packet(socket_desc, buf, len+META_LEN, (struct sockaddr *)&client_address, client_address_len);
 
             // print all messages that can be printed
             while(decode_msg(queue[print_i % QUEUE_SIZE], NULL) == print_i) {
