@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,17 +60,32 @@ int main(int argc, char *argv[]) {
     struct timeval tv;
     fd_set readfds;
 
-    tv.tv_sec = ACK_TIMELIMIT_SEC;
-    tv.tv_usec = ACK_TIMELIMIT_USEC;
+    tv.tv_sec = INF_TIME;
+    tv.tv_usec = 0;
 
     FD_ZERO(&readfds);
     FD_SET(STDIN, &readfds);
     FD_SET(socket_desc, &readfds);
 
+    int len, sequence, set_stdin, current_time;
+
     while((res = select(socket_desc+1, &readfds, NULL, NULL, &tv)) >= 0){
 
-        if(res == 0) {
-            fprintf(stderr, "TIME\n");
+        set_stdin = 1;
+
+        if(res == 0) { // Time limit expired without acknowledgment, send packets again
+
+            current_time = time(NULL);
+
+            for(i = 0; i < QUEUE_SIZE; i++){
+                if(queue_times[i] > 0 && queue_times[i] + ACK_TIMELIMIT <= current_time){
+                    queue_times[i] = current_time;
+                    decode_msg(queue[i], &len);
+                    send(socket_desc, queue[i], len, 0);
+                    fprintf(stderr, "Time limit expired. %d was sent again.\n", i);
+                }
+            }
+
         }else {
             for(i = 0; i <= socket_desc; i++){
                 if(FD_ISSET(i, &readfds)){
@@ -77,26 +93,52 @@ int main(int argc, char *argv[]) {
 
                         if(sequence_i - ack_i >= QUEUE_SIZE - 1) { // Queue full
                             fprintf(stderr, "Queue is full. Waiting for server to reply.\n");
+                            set_stdin = 0;
+                            FD_CLR(STDIN, &readfds);
                             break;
                         }
 
-                        res = encode_msg(sequence_i, STDIN, queue[sequence_i]);
-                        send(socket_desc, queue[sequence_i], res, 0);
+                        len = encode_msg(sequence_i, STDIN, queue[sequence_i % QUEUE_SIZE]);
+                        send(socket_desc, queue[sequence_i % QUEUE_SIZE], len, 0);
+                        ack[sequence_i % QUEUE_SIZE] = 0;
+                        queue_times[sequence_i % QUEUE_SIZE] = time(NULL);
                         sequence_i++;
 
                     }else if(i == socket_desc) { // Acknowledgment from server
-                        res = recv(socket_desc, buf, sizeof(buf), 0);
-                        fprintf(stderr, "<%s\n", buf);
+                        recv(socket_desc, buf, sizeof(buf), 0);
+                        sequence = decode_msg(buf, &len);
+                        if(sequence >= 0){
+
+                            if(memcmp(queue[sequence % QUEUE_SIZE], buf, len) == 0){
+                                ack[sequence % QUEUE_SIZE] = 1;
+                                queue_times[sequence % QUEUE_SIZE] = 0;
+
+                                // Move queue over all acknowledged messages
+                                while(ack[ack_i % QUEUE_SIZE]){
+                                    ack[ack_i % QUEUE_SIZE] = 0;
+                                    ack_i++;
+                                }
+
+                                fprintf(stderr, "Got acknowledgment for %d\n", sequence);
+                            }
+                        }
                     }
                 }
             }
         }
 
         FD_ZERO(&readfds);
-        FD_SET(STDIN, &readfds);
         FD_SET(socket_desc, &readfds);
+        if(set_stdin) FD_SET(STDIN, &readfds);
 
-        //tv.tv_sec = min(remaining times)
+        // Set time limit to next expiring packet
+        current_time = time(NULL);
+        tv.tv_sec = INF_TIME;
+        for(i = 0; i < QUEUE_SIZE; i++){
+            if(queue_times[i] > 0 && current_time - queue_times[i] < tv.tv_sec){
+                tv.tv_sec = current_time - queue_times[i];
+            }
+        }
     }
 
     close(socket_desc);

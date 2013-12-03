@@ -5,8 +5,8 @@
 #define BUFFER_SIZE 260
 #define QUEUE_SIZE 8
 
-#define ACK_TIMELIMIT_SEC 10
-#define ACK_TIMELIMIT_USEC 0
+#define ACK_TIMELIMIT 5 // sec
+#define INF_TIME 2*365*86400 // reasonably long time limit
 
 #define MAX_CONNECTIONS 1
 

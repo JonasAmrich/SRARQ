@@ -63,8 +63,7 @@ int main(int argc, char *argv[]) {
             memcpy(queue[sequence % QUEUE_SIZE], buf, len+META_LEN);
 
             // send acknowledgement
-            char *msg = "Hi there! I'm server, who are you?";
-            sendto(socket_desc, msg, strlen(msg), 0, (struct sockaddr *)&client_address, client_address_len);
+            sendto(socket_desc, buf, len+META_LEN, 0, (struct sockaddr *)&client_address, client_address_len);
 
             // print all messages that can be printed
             while(decode_msg(queue[print_i % QUEUE_SIZE], NULL) == print_i) {
