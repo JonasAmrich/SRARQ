@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     socket_desc = socket(PF_INET, SOCK_DGRAM, 0);
 
     if(socket_desc < 0) {
-        perror("Can not open socket");
+        perror("Cannot open socket");
         return 1;
     }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     res = bind(socket_desc, (struct sockaddr *)&address, sizeof(address));
 
     if(res < 0){
-        perror("Can not bind to port");
+        perror("Cannot bind to port");
         return 1;
     }
 
