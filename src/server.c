@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -21,6 +22,8 @@ int main(int argc, char *argv[]) {
 
     char buf[BUFFER_SIZE];
     char queue[QUEUE_SIZE][BUFFER_SIZE] = {{0}};
+
+    if(DROP_PACKETS) srand(time(NULL));
 
     // Check number of arguments, terminate when server port is not a positive number
     if(argc != 2 || (server_port = strtol(argv[1], NULL, 0)) <= 0) {
@@ -56,7 +59,7 @@ int main(int argc, char *argv[]) {
 
     int len, sequence = -1;
     while(recvfrom(socket_desc, buf, sizeof(buf), 0, (struct sockaddr *)&client_address, &client_address_len) >= 0){
-
+        // on client_address change reset print_i
         sequence = decode_msg(buf, &len);
 
         if(sequence >= 0){

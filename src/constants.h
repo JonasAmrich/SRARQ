@@ -6,7 +6,7 @@
 #define QUEUE_SIZE 8
 
 #define ACK_TIMELIMIT 5 // sec
-#define INF_TIME 2*365*86400 // reasonably long time limit
+#define INF_TIME 63072000 // reasonably long time limit
 
 #define MAX_CONNECTIONS 1
 
