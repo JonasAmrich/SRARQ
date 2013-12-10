@@ -12,7 +12,7 @@
 
 /* SRARQ functions */
 
-int xor(char data[], int len){
+int xor(char data[], unsigned char len){
     int i, x = 0;
     for(i = 0; i < len; i++){
         x ^= (int) data[i];
@@ -49,15 +49,15 @@ int encode_msg(int sequence, int fd, char dest[]){
 // Returns -1 for invalid or zero size packet, sequence number otherwise
 int decode_msg(char msg[], int *len){
     if(len != NULL){
-        *len = msg[2];
+        *len = (unsigned char) msg[2];
     }
 
-    if(xor(&msg[3], msg[2]) != msg[msg[2]+3]){
+    if(xor(&msg[3], (unsigned char) msg[2]) != msg[(unsigned char) msg[2]+3]){
         fprintf(stderr, "Invalid packet received!\n");
         return -1;
     }
 
-    return msg[2] == 0 ? -1 : 0 | msg[0] << 8 | msg[1];
+    return (unsigned char) msg[2] == 0 ? -1 : 0 | (unsigned char) msg[0] << 8 | (unsigned char) msg[1];
 }
 
 // Prints message to stdout
