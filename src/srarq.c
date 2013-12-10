@@ -62,5 +62,6 @@ int decode_msg(char msg[], int *len){
 
 // Prints message to stdout
 void print_msg(char msg[]){
-    printf("%.*s", msg[2], &msg[3]);
+    fprintf(stderr, ">%d\n", (unsigned char) msg[2]);
+    printf("%.*s", (unsigned char) msg[2], &msg[3]);
 }

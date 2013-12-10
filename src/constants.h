@@ -12,5 +12,5 @@
 
 #define STDIN 0
 
-#define DEBUG 1
-#define DROP_PACKETS 1
+#define DEBUG 0
+#define DROP_PACKETS 0
