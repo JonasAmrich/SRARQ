@@ -152,10 +152,9 @@ int main(int argc, char *argv[]){
         if(set_stdin) FD_SET(STDIN, &readfds);
 
         // Set time limit to next expiring packet
-        //current_time = time(NULL);
         tv.tv_sec = INF_TIME;
         for(i = 0; i < QUEUE_SIZE; i++){
-            if(queue_times[i] > 0 && current_time + ACK_TIMELIMIT - queue_times[i] < tv.tv_sec){ // this is not cool
+            if(queue_times[i] > 0 && current_time + ACK_TIMELIMIT - queue_times[i] < tv.tv_sec){
                 tv.tv_sec = current_time + ACK_TIMELIMIT - queue_times[i];
             }
         }
